@@ -193,9 +193,99 @@ def tree_page():
     with tab2:
         random_forest_page()
 
+
+def logistic_regression_page():
+        st.markdown("# Logistic regression")
+        st.write("Applying logistic regression on our dataset")
+
+        from sklearn import datasets
+        from sklearn.linear_model import LogisticRegression as LR
+        from sklearn.model_selection import train_test_split
+        from sklearn import preprocessing
+
+        iris = datasets.load_iris(as_frame=True)
+        min_max_scaler = preprocessing.MinMaxScaler()
+        data_target=pd.concat([pd.DataFrame(min_max_scaler.fit_transform(iris.data), columns=iris.data.columns), iris.target], axis=1)
+        data_shuffle = data_target.sample(frac=1)
+        X_train, X_test, y_train, y_test = train_test_split(data_shuffle.iloc[:, :-1].to_numpy(), data_shuffle.iloc[:, -1], test_size=0.25)
+        
+        try:
+            penalty  = st.selectbox(
+                'Select the criterion type:',
+                ("L1", "L2", "elasticnet"),)
+
+            if penalty == "elasticnet":
+                l1_ratio = st.slider("L1 ratio (0 to 1)", 0.0, 1.0, step=0.01)
+
+            max_iter  = st.text_input('Maximum number of iterations',
+                            placeholder="Specify the maximum number of iterations taken for the solvers to converge (default 100)")
+        except Exception as e:
+            penalty = "l2" #{‘l1’, ‘l2’, ‘elasticnet’, None}, default=’l2’
+            l1_ratio = None # 0 <= l1_ratio <= 1 if penalty='elasticnet'
+            max_iter = 100
+
+        penalty = lower_n_first(penalty, 1)
+        l1_ratio = float(l1_ratio) if penalty == "elasticnet" else None
+        max_iter = int(max_iter) if max_iter!="" else 100
+
+        clf = LR(random_state=0, solver="saga", penalty=penalty, l1_ratio=l1_ratio,max_iter=max_iter).fit(X_train, y_train)
+        st.session_state["model_logistic_regression"] = clf
+
+        features_target_cofficients = pd.DataFrame(clf.coef_, columns=iris.data.columns, index=iris.target_names)
+        st.dataframe(features_target_cofficients)
+        RL_precision = np.sum(clf.predict(X_test) == y_test) / len(X_test)
+        st.write('Logistic regression precision', RL_precision)
+
+def neural_network():
+    st.markdown("# Neural Network")
+    st.write("Applying Neural network (MLPClassifier) on our dataset")
+
+    from sklearn import datasets
+    from sklearn.neural_network import MLPClassifier
+    from sklearn.model_selection import train_test_split
+    from sklearn import preprocessing
+
+    iris = datasets.load_iris(as_frame=True)
+    min_max_scaler = preprocessing.MinMaxScaler()
+    data_target=pd.concat([pd.DataFrame(min_max_scaler.fit_transform(iris.data), columns=iris.data.columns), iris.target], axis=1)
+    data_shuffle = data_target.sample(frac=1)
+    X_train, X_test, y_train, y_test = train_test_split(data_shuffle.iloc[:, :-1].to_numpy(), data_shuffle.iloc[:, -1], test_size=0.25)
+
+    try:
+        activation  = st.selectbox(
+            'Select the activation type:',
+            ('Identity', 'Logistic', 'Tanh', 'Relu'),)
+
+        learning_rate  = st.selectbox(
+            'Select the learning rate type:',
+            ('Constant', 'Invscaling', 'Adaptive'),)
+
+        alpha = st.slider("L2 ratio (0 to 1)", 0.0, 1.0, step=0.01)
+
+        max_iter  = st.text_input('Maximum number of iterations',
+                        placeholder="Specify the maximum number of iterations taken for the solvers to converge (default 200)")
+    except Exception as e:
+        activation = "relu"
+        learning_rate = "constant"
+        alpha = 0.0001
+        max_iter = 200
+
+    activation = lower_n_first(activation, 1)
+    learning_rate = lower_n_first(learning_rate, 1)
+    alpha = float(alpha) if alpha != "" else 0.0001
+    max_iter = int(max_iter) if max_iter!="" else 200
+
+
+    clf = MLPClassifier(solver='lbfgs', alpha=alpha, activation=activation, max_iter=max_iter, learning_rate=learning_rate,
+                    hidden_layer_sizes=(5, 10), random_state=1)
+    clf.fit(X_train, y_train)
+    st.session_state["model_neural_network"]=clf
+
+    NN_precision = clf.score(X_test, y_test)
+    st.write('Logistic regression precision', NN_precision)
+
 page_names_to_funcs = {
     "Kmeans": kmeans_page,
-    # "Fuzzy Kmeans": decision_tree_page,
     "Decision Tree & Random Forest Classifier": tree_page,
     "Logistic Regression": logistic_regression_page,
     "Neural network": neural_network,
