@@ -97,3 +97,110 @@ page_names_to_funcs = {
 
 selected_page = st.sidebar.selectbox("Algorithm for classification", page_names_to_funcs.keys(), key="1")
 page_names_to_funcs[selected_page]()
+
+def decision_tree_page():
+    st.markdown("# Decision tree classification")
+    st.write("Applying Decision tree (from sklearn) on our dataset")
+
+    try:
+        data_target = st.session_state["data_target"]
+        iris = st.session_state["iris"]
+    except Exception as e:
+        switch_page("Home")
+
+    try:
+        tree_depth  = int(st.text_input('Depth of the decision tree', 
+                        placeholder="Specify the depth of the tree (0 for automatic depth)"))
+    except Exception as e:
+        tree_depth = 0
+
+    data_shuffle = data_target.sample(frac=1)
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(data_shuffle.iloc[:, :-1].to_numpy(), data_shuffle.iloc[:, -1], test_size=0.25)
+
+    from sklearn import tree
+    if not tree_depth: tree_depth = None
+    clf = tree.DecisionTreeClassifier(max_depth=tree_depth)
+    clf = clf.fit(X_train, y_train)
+    st.session_state['model_decision_tree'] = clf
+
+    fig = plt.figure(figsize=(25,20))
+    _ = tree.plot_tree(clf, 
+                    feature_names=iris.feature_names,  
+                    class_names=iris.target_names,
+                    label=None,
+                    proportion=True,
+                    filled=True)
+    st.pyplot(fig)
+
+    accuracy_decision_tree = 1 - np.sum(np.abs(clf.predict(X_test) - y_test)) / len(y_test)
+    st.write("### Accurarcy of decision tree: ", accuracy_decision_tree)
+
+def random_forest_page():
+    st.markdown("# Random forest classification")
+    st.write("Applying random forest (from sklearn) on our dataset")
+
+    try:
+        data = st.session_state["data"]
+        iris = st.session_state["iris"]
+    except Exception as e:
+        switch_page("Home")
+
+    try:
+        tree_depth  = st.text_input('Depth of the decision tree', 
+                        placeholder="Specify the depth of the tree (0 for automatic depth)", key="tree_depth")
+
+        n_t  = st.text_input('Number of trees in the random forest',
+                        placeholder="Specify the numbers of trees (estimators) in the random forest(100 by default)", key='n_t')
+
+        option = st.selectbox(
+            'Select the criterion type:',
+            ("Gini", "Entropy", "Log_loss"),)
+        option = list(option)
+        option[0] = option[0].lower()
+        option = ''.join(option)
+    except Exception as e:
+        print(e)
+        n_t = 100
+        option = "gini" #{“gini”, “entropy”, “log_loss”}, default=”gini”
+        tree_depth = None
+
+    tree_depth = None if tree_depth in ["", 0] else int(tree_depth)
+    n_t = 100 if n_t=="" else int(n_t)
+
+    from sklearn.ensemble import RandomForestClassifier as RFC
+    from sklearn import tree
+
+
+
+
+    clf = RFC(max_depth=tree_depth, random_state=0, criterion=option, n_estimators=n_t)
+    clf.fit(data.to_numpy(), iris.target)
+    st.session_state["model_random_forest"]=clf
+
+
+    try:
+        i  = int(st.text_input('Tree number in the random forest to show', 
+            placeholder="Specify the tree number (1 to %i)"%n_t))
+        i-=1
+
+        fig = plt.figure(figsize=(25,20))
+        _ = tree.plot_tree(clf.estimators_[i], 
+                        feature_names=iris.feature_names,  
+                        class_names=iris.target_names,
+                        label=None,
+                        proportion=True,
+                        filled=True)
+        st.pyplot(fig)
+    except Exception as e:
+        pass
+
+    st.write("### Accurarcy of the random forest classifier: ", clf.score(data.to_numpy(), iris.target))
+
+def tree_page():
+    tab1, tab2 = st.tabs(["Decision tree", "Random forest"])
+    with tab1:
+        decision_tree_page()
+
+    with tab2:
+        random_forest_page()
