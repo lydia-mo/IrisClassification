@@ -1,9 +1,8 @@
-Classification et traitement d'articles
+Classification de fleurs 
 
 Plusieurs fonctionnalités:
-	Classification de différents articles en fonctions de leur similités en distance cosine
+	Classification de fleurs en fonctions de leurs caractéristiques en utilisant : 
+		K-means 
+		Descision Tree / Random Forest / logistic regression / neural network 
 	Visualisation des clusters
-	Labelisations des clusters en utlisant différentes méthodes (LDA, PCA, NMF)
-	Graphe de similarité entre les différents clusters
-	Géneration des résumé d'articles
-	Recherches d'articles les plus pertinents en fonctions de mots clés entrés par l'utilisateur
+	Classification d'une fleur en fonction des entrées d'un utilisateur 
