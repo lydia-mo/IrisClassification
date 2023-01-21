@@ -86,18 +86,6 @@ def kmeans_page():
         accuracy_kmeans = 1 - np.sum(np.abs(np.array(list(Counter(c_labels).values())) - 50))/len(c_labels)
         st.write("### Approximated accurary:", accuracy_kmeans)
 
-
-page_names_to_funcs = {
-    "Kmeans": kmeans_page,
-    # "Fuzzy Kmeans": decision_tree_page,
-    "Decision Tree & Random Forest Classifier": tree_page,
-    "Logistic Regression": logistic_regression_page,
-    "Neural network": neural_network,
-}
-
-selected_page = st.sidebar.selectbox("Algorithm for classification", page_names_to_funcs.keys(), key="1")
-page_names_to_funcs[selected_page]()
-
 def decision_tree_page():
     st.markdown("# Decision tree classification")
     st.write("Applying Decision tree (from sklearn) on our dataset")
@@ -204,3 +192,15 @@ def tree_page():
 
     with tab2:
         random_forest_page()
+
+page_names_to_funcs = {
+    "Kmeans": kmeans_page,
+    # "Fuzzy Kmeans": decision_tree_page,
+    "Decision Tree & Random Forest Classifier": tree_page,
+    "Logistic Regression": logistic_regression_page,
+    "Neural network": neural_network,
+}
+
+selected_page = st.sidebar.selectbox("Algorithm for classification", page_names_to_funcs.keys(), key="1")
+page_names_to_funcs[selected_page]()
+
